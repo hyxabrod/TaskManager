@@ -12,9 +12,8 @@ Task manager application built with modern Android technologies.
     - Jetpack Compose
     - Mockk
     - Hilt
-    - Room database
+    - Room database for the persistent storage
 2. **Architecture**: Clean Architecture principles.
-3. **Persistent storage**
 
 ### Main Task Features
 
