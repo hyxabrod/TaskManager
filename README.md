@@ -2,8 +2,6 @@
 
 TaskManager application built with modern Android technologies.
 
-## Build
-
 ## Implementation Details
 
 ### General
