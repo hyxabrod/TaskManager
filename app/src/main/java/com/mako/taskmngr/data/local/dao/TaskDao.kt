@@ -21,7 +21,7 @@ interface TasksDao {
             (title LIKE '%' || :searchQuery || '%') 
             AND 
             (status IN (:statuses))
-        ORDER BY id ASC
+        ORDER BY id DESC
     """
     )
     fun getFilteredTasks(
