@@ -11,7 +11,7 @@ import com.mako.taskmngr.data.local.entity.TaskDataStatus
 
 @Dao
 interface TasksDao {
-    @Query("SELECT * FROM tasks")
+    @Query("SELECT * FROM tasks ORDER BY id DESC")
     fun getAllTasks(): PagingSource<Int, TaskDataEntity>
 
     @Query(
