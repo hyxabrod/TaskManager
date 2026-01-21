@@ -22,5 +22,3 @@ interface TasksRepository {
         const val PAGE_SIZE: Int = 20
     }
 }
-
-class UpgradeRequiredException : Exception()
