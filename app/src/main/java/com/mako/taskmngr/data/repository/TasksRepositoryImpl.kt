@@ -4,7 +4,6 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.PagingSource
-import androidx.paging.PagingState
 import androidx.paging.map
 import com.mako.taskmngr.data.local.dao.TasksDao
 import com.mako.taskmngr.data.local.entity.TaskDataEntity
@@ -16,18 +15,7 @@ import com.mako.taskmngr.domain.entity.TaskItemIncomingDomainEntity
 import com.mako.taskmngr.domain.repository.TasksRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.io.IOException
 import javax.inject.Inject
-
-class FakeTaskPagingSource : PagingSource<Int, TaskItemIncomingDomainEntity>() {
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, TaskItemIncomingDomainEntity> {
-        return LoadResult.Error(IOException("Упс! Ошибка сети или базы данных"))
-    }
-
-    override fun getRefreshKey(state: PagingState<Int, TaskItemIncomingDomainEntity>): Int? {
-        return state.anchorPosition
-    }
-}
 
 class TasksRepositoryImpl
 @Inject
