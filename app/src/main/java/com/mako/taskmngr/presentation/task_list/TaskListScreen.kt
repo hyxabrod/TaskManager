@@ -38,6 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -279,6 +280,8 @@ fun FilterBar(
     onSearchQueryChange: (String) -> Unit,
     onStatusToggle: (TaskPresentationStatus) -> Unit
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+
     Column(modifier = Modifier.fillMaxWidth()) {
         SearchBar(
             inputField = {
@@ -291,7 +294,10 @@ fun FilterBar(
                     placeholder = { Text("Search tasks") },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { onSearchQueryChange("") }) {
+                            IconButton(onClick = {
+                                onSearchQueryChange("")
+                                keyboardController?.hide()
+                            }) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = "Clear search"
