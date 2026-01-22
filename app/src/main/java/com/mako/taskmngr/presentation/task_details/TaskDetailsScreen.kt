@@ -81,7 +81,6 @@ fun TaskDetailsScreen(
         topBar = {
             TaskDetailsTopBar(
                 onNavigateBack = {
-                    onNavigateBack()
                     viewModel.handleIntent(TaskDetailsIntent.BackNavigation)
                 },
                 onDeleteClick = {

@@ -55,7 +55,7 @@ class TaskDetailsViewModel @Inject constructor(
 
     private fun loadTask() {
         if (taskId == TaskPresentationEntity.NO_ID) {
-            return;
+            return
         }
 
         viewModelScope.launch {
@@ -129,7 +129,7 @@ class TaskDetailsViewModel @Inject constructor(
                 if (taskId == TaskPresentationEntity.NO_ID) {
                     saveTask()
                 } else {
-                    deleteTask()
+                    updateTask()
                 }
                 _state.update { it.copy(canDelete = true) }
                 Log.d("TaskDetailsViewModel", "Saved")
@@ -143,7 +143,7 @@ class TaskDetailsViewModel @Inject constructor(
         }
     }
 
-    private suspend fun deleteTask() {
+    private suspend fun updateTask() {
         updateTaskUseCase(
             UpdateTaskByIdUseCaseArgs(
                 id = taskId,
