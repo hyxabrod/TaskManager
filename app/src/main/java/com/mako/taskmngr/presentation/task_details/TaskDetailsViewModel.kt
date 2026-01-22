@@ -19,13 +19,12 @@ import com.mako.taskmngr.presentation.task_details.entities.TaskDetailsEffect
 import com.mako.taskmngr.presentation.task_details.entities.TaskDetailsIntent
 import com.mako.taskmngr.presentation.task_details.entities.TaskDetailsState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -45,8 +44,8 @@ class TaskDetailsViewModel @Inject constructor(
     private val _state = MutableStateFlow(TaskDetailsState())
     val state: StateFlow<TaskDetailsState> = _state.asStateFlow()
 
-    private val _effect = MutableSharedFlow<TaskDetailsEffect>()
-    val effect: SharedFlow<TaskDetailsEffect> = _effect.asSharedFlow()
+    private val _effect = Channel<TaskDetailsEffect>(Channel.BUFFERED)
+    val effect: Flow<TaskDetailsEffect> = _effect.receiveAsFlow()
 
     init {
         loadTask()
@@ -71,7 +70,7 @@ class TaskDetailsViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 Log.e("TaskDetailsViewModel", "Failed to load task: ${e.message}")
-                _effect.emit(TaskDetailsEffect.ShowSnackbar("Failed to load task"))
+                _effect.send(TaskDetailsEffect.ShowSnackbar("Failed to load task"))
             }
         }
     }
@@ -100,8 +99,12 @@ class TaskDetailsViewModel @Inject constructor(
     }
 
     private fun onBackNavigationIntent() {
-        viewModelScope.launch(Dispatchers.Main.immediate) {
-            _effect.emit(TaskDetailsEffect.BackNavigation)
+        navigateBack()
+    }
+
+    private fun navigateBack() {
+        viewModelScope.launch {
+            _effect.send(TaskDetailsEffect.BackNavigation)
         }
     }
 
@@ -112,10 +115,10 @@ class TaskDetailsViewModel @Inject constructor(
                     DeleteTaskByIdUseCaseArgs(id = taskId)
                 )
                 Log.d("TaskDetailsViewModel", "Delete")
-                onBackNavigationIntent()
+                navigateBack()
             } catch (e: Exception) {
                 Log.e("TaskDetailsViewModel", "Failed to delete: ${e.message}")
-                _effect.emit(TaskDetailsEffect.ShowSnackbar("Failed to delete"))
+                _effect.send(TaskDetailsEffect.ShowSnackbar("Failed to delete"))
             }
         }
     }
@@ -130,10 +133,11 @@ class TaskDetailsViewModel @Inject constructor(
                 }
                 _state.update { it.copy(canDelete = true) }
                 Log.d("TaskDetailsViewModel", "Saved")
-                onBackNavigationIntent()
+                _effect.send(TaskDetailsEffect.ShowSnackbar("Saved!"))
+                navigateBack()
             } catch (e: Exception) {
                 Log.e("TaskDetailsViewModel", "Failed to save: ${e.message}")
-                _effect.emit(TaskDetailsEffect.ShowSnackbar("Failed to save"))
+                _effect.send(TaskDetailsEffect.ShowSnackbar("Failed to save"))
             }
         }
     }

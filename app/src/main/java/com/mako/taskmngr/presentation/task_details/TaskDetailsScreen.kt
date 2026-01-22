@@ -28,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -45,6 +46,7 @@ import com.mako.taskmngr.core.theme.screenTitle
 import com.mako.taskmngr.presentation.entities.TaskPresentationStatus
 import com.mako.taskmngr.presentation.task_details.entities.TaskDetailsEffect
 import com.mako.taskmngr.presentation.task_details.entities.TaskDetailsIntent
+import kotlinx.coroutines.launch
 
 private object DescriptionFieldConfig {
     const val MIN_LINES_PORTRAIT = 4
@@ -63,13 +65,16 @@ fun TaskDetailsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
                 is TaskDetailsEffect.ShowSnackbar -> {
                     keyboardController?.hide()
-                    snackbarHostState.showSnackbar(effect.message)
+                    scope.launch {
+                        snackbarHostState.showSnackbar(effect.message)
+                    }
                 }
 
                 TaskDetailsEffect.BackNavigation -> onNavigateBack()
