@@ -95,7 +95,15 @@ fun TasksListScreen(onTaskClick: (Long) -> Unit, viewModel: TaskListViewModel = 
             ) { Icon(imageVector = Icons.Default.Add, contentDescription = "Add Task") }
         }
     ) { paddingValues ->
-        ScaffoldBody(tasks, paddingValues, state, viewModel)
+        ScaffoldBody(
+            tasks = tasks,
+            paddingValues = paddingValues,
+            state = state,
+            onGenerateTasks = { viewModel.handleIntent(TaskManagerListIntent.GenerateTasks) },
+            onSearchQueryChange = { viewModel.handleIntent(TaskManagerListIntent.UpdateSearchQuery(it)) },
+            onStatusToggle = { viewModel.handleIntent(TaskManagerListIntent.ToggleStatus(it)) },
+            onTaskClick = { viewModel.handleIntent(TaskManagerListIntent.Navigation(it)) }
+        )
     }
 }
 
@@ -104,7 +112,10 @@ private fun ScaffoldBody(
     tasks: LazyPagingItems<TaskItemPresentationEntity>,
     paddingValues: PaddingValues,
     state: TaskManagerListState,
-    viewModel: TaskListViewModel
+    onGenerateTasks: () -> Unit,
+    onSearchQueryChange: (String) -> Unit,
+    onStatusToggle: (TaskPresentationStatus) -> Unit,
+    onTaskClick: (Long) -> Unit
 ) {
     if (tasks.loadState.refresh is LoadState.Error) {
         Error(paddingValues)
@@ -112,9 +123,9 @@ private fun ScaffoldBody(
         val hasFilters = state.searchQuery.isNotEmpty() || state.selectedStatuses.isNotEmpty()
 
         if (tasks.loadState.refresh is LoadState.NotLoading && tasks.itemCount == 0 && !hasFilters) {
-            NoData(paddingValues, viewModel)
+            NoData(paddingValues, onGenerateTasks)
         } else {
-            Content(paddingValues, viewModel, tasks, state)
+            Content(paddingValues, tasks, state, onSearchQueryChange, onStatusToggle, onTaskClick)
         }
     }
 }
@@ -137,7 +148,7 @@ private fun Error(paddingValues: PaddingValues) {
 }
 
 @Composable
-private fun NoData(paddingValues: PaddingValues, viewModel: TaskListViewModel) {
+private fun NoData(paddingValues: PaddingValues, onGenerateTasks: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -155,7 +166,7 @@ private fun NoData(paddingValues: PaddingValues, viewModel: TaskListViewModel) {
             contentDescription = null,
             modifier = Modifier.padding(vertical = Dimens.Padding16)
         )
-        Button(onClick = { viewModel.handleIntent(TaskManagerListIntent.GenerateTasks) }) {
+        Button(onClick = onGenerateTasks) {
             Text(
                 "Generate",
                 style = TmTypography.bodyMedium,
@@ -168,9 +179,11 @@ private fun NoData(paddingValues: PaddingValues, viewModel: TaskListViewModel) {
 @Composable
 private fun Content(
     paddingValues: PaddingValues,
-    viewModel: TaskListViewModel,
     tasks: LazyPagingItems<TaskItemPresentationEntity>,
     state: TaskManagerListState,
+    onSearchQueryChange: (String) -> Unit,
+    onStatusToggle: (TaskPresentationStatus) -> Unit,
+    onTaskClick: (Long) -> Unit
 ) {
     val listState = rememberLazyListState()
     val hasFilters = state.searchQuery.isNotEmpty() || state.selectedStatuses.isNotEmpty()
@@ -185,12 +198,8 @@ private fun Content(
             FilterBar(
                 searchQuery = state.searchQuery,
                 selectedStatuses = state.selectedStatuses,
-                onSearchQueryChange = {
-                    viewModel.handleIntent(TaskManagerListIntent.UpdateSearchQuery(it))
-                },
-                onStatusToggle = {
-                    viewModel.handleIntent(TaskManagerListIntent.ToggleStatus(it))
-                }
+                onSearchQueryChange = onSearchQueryChange,
+                onStatusToggle = onStatusToggle
             )
 
             Box(
@@ -235,24 +244,21 @@ private fun Content(
             FilterBar(
                 searchQuery = state.searchQuery,
                 selectedStatuses = state.selectedStatuses,
-                onSearchQueryChange = {
-                    viewModel.handleIntent(TaskManagerListIntent.UpdateSearchQuery(it))
-                },
-                onStatusToggle = {
-                    viewModel.handleIntent(TaskManagerListIntent.ToggleStatus(it))
-                }
+                onSearchQueryChange = onSearchQueryChange,
+                onStatusToggle = onStatusToggle
             )
         }
 
-        items(count = tasks.itemCount, key = { index -> tasks[index]?.id ?: index }) { index ->
+        items(
+            count = tasks.itemCount,
+            key = { index -> tasks[index]?.id ?: "placeholder-$index" }
+        ) { index ->
             val task = tasks[index]
             if (task != null) {
                 TaskItem(
                     title = task.title,
                     status = task.status,
-                    onClick = {
-                        viewModel.handleIntent(TaskManagerListIntent.Navigation(task.id))
-                    }
+                    onClick = { onTaskClick(task.id) }
                 )
             }
         }

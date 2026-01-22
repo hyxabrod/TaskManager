@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,7 +45,10 @@ class TaskDetailsViewModel @Inject constructor(
     private val _state = MutableStateFlow(TaskDetailsState())
     val state: StateFlow<TaskDetailsState> = _state.asStateFlow()
 
-    private val _effect = MutableSharedFlow<TaskDetailsEffect>()
+    private val _effect = MutableSharedFlow<TaskDetailsEffect>(
+        extraBufferCapacity = 2,
+        onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.DROP_LATEST
+    )
     val effect: SharedFlow<TaskDetailsEffect> = _effect.asSharedFlow()
 
     init {
@@ -113,9 +115,7 @@ class TaskDetailsViewModel @Inject constructor(
                     DeleteTaskByIdUseCaseArgs(id = taskId)
                 )
                 Log.d("TaskDetailsViewModel", "Delete")
-                withContext(Dispatchers.Main.immediate) {
-                    _effect.emit(TaskDetailsEffect.BackNavigation)
-                }
+                onBackNavigationIntent()
             } catch (e: Exception) {
                 Log.e("TaskDetailsViewModel", "Failed to delete: ${e.message}")
                 _effect.emit(TaskDetailsEffect.ShowSnackbar("Failed to delete"))
@@ -133,9 +133,7 @@ class TaskDetailsViewModel @Inject constructor(
                 }
                 _state.update { it.copy(canDelete = true) }
                 Log.d("TaskDetailsViewModel", "Saved")
-                withContext(Dispatchers.Main.immediate) {
-                    _effect.emit(TaskDetailsEffect.ShowSnackbar("Saved"))
-                }
+                onBackNavigationIntent()
             } catch (e: Exception) {
                 Log.e("TaskDetailsViewModel", "Failed to save: ${e.message}")
                 _effect.emit(TaskDetailsEffect.ShowSnackbar("Failed to save"))

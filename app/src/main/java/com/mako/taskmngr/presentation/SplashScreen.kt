@@ -24,12 +24,15 @@ import com.mako.taskmngr.core.theme.TmTypography
 import com.mako.taskmngr.core.theme.brand
 import com.mako.taskmngr.core.theme.titleHuge
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
 @Composable
 fun SplashScreen(onNavigateToList: () -> Unit) {
     LaunchedEffect(Unit) {
         delay(2000)
-        onNavigateToList()
+        if (isActive) {
+            onNavigateToList()
+        }
     }
 
     TaskManagerTheme(darkTheme = true) {
