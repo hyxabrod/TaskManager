@@ -45,10 +45,7 @@ class TaskDetailsViewModel @Inject constructor(
     private val _state = MutableStateFlow(TaskDetailsState())
     val state: StateFlow<TaskDetailsState> = _state.asStateFlow()
 
-    private val _effect = MutableSharedFlow<TaskDetailsEffect>(
-        extraBufferCapacity = 2,
-        onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.DROP_LATEST
-    )
+    private val _effect = MutableSharedFlow<TaskDetailsEffect>()
     val effect: SharedFlow<TaskDetailsEffect> = _effect.asSharedFlow()
 
     init {
